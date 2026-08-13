@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ежедневные отчёты со стройки — в мессенджере</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=PT+Sans+Narrow:wght@400;700&family=PT+Sans:ital,wght@0,400;0,700;1,400&family=PT+Mono&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F1F3EF;
+    --ink:#16202B;
+    --ink-soft:#4A5763;
+    --rule:#C3CAC4;
+    --rule-strong:#8D9891;
+    --signal:#F25C05;
+    --alert:#B4231C;
+    --ok:#2E6B4F;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{max-width:100%; overflow-x:hidden;}
+  img,table{max-width:100%;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'PT Sans',system-ui,sans-serif;
+    font-size:17px;
+    line-height:1.55;
+    /* миллиметровка: едва заметная сетка чертёжного листа */
+    background-image:
+      linear-gradient(var(--rule) 1px, transparent 1px),
+      linear-gradient(90deg, var(--rule) 1px, transparent 1px);
+    background-size:100% 44px, 44px 100%;
+    background-position:-1px -1px;
+    background-attachment:fixed;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background:radial-gradient(circle at 50% 0%, rgba(241,243,239,.55), rgba(241,243,239,.94) 60%);
+    pointer-events:none; z-index:0;
+  }
+  .sheet{
+    position:relative; z-index:1;
+    max-width:1000px;
+    margin:0 auto;
+    padding:0 24px 72px;
+  }
+
+  /* ——— типографика ——— */
+  h1,h2,h3,.eyebrow,.stamp-label{
+    font-family:'PT Sans Narrow',sans-serif;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    font-weight:700;
+    margin:0;
+  }
+  h1{font-size:clamp(34px,6vw,62px); line-height:1.02; letter-spacing:.02em;}
+  h2{font-size:clamp(21px,2.6vw,27px);}
+  h3{font-size:17px; letter-spacing:.09em;}
+  p{margin:0 0 14px;}
+  .lead{font-size:clamp(18px,2.1vw,21px); color:var(--ink-soft); max-width:62ch;}
+  .eyebrow{
+    font-size:13px; letter-spacing:.22em; color:var(--signal);
+    display:flex; align-items:center; gap:12px;
+  }
+  .eyebrow::after{content:""; flex:1; height:1px; background:var(--rule-strong);}
+  .mono{font-family:'PT Mono',ui-monospace,monospace;}
+
+  /* ——— шапка листа ——— */
+  header{
+    display:flex; justify-content:space-between; align-items:baseline;
+    gap:16px; flex-wrap:wrap;
+    padding:22px 0 14px;
+    border-bottom:2px solid var(--ink);
+  }
+  header .who{font-family:'PT Sans Narrow',sans-serif; text-transform:uppercase; letter-spacing:.14em; font-size:13px;}
+  header .who b{color:var(--signal);}
+  header .doc{font-family:'PT Mono',monospace; font-size:12px; color:var(--ink-soft);}
+
+  section{padding:54px 0; border-bottom:1px solid var(--rule-strong);}
+  section:last-of-type{border-bottom:none;}
+  .head-block{margin-bottom:26px;}
+  .head-block h2{margin:10px 0 8px;}
+
+  /* ——— герой ——— */
+  .hero{padding-top:46px;}
+  .hero h1{margin:14px 0 18px;}
+  .hero h1 em{font-style:normal; color:var(--signal);}
+  .hero-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:38px; align-items:start;
+    margin-top:34px;
+  }
+  .hero-note{font-size:15px; color:var(--ink-soft);}
+  .hero-note strong{color:var(--ink);}
+
+  /* ——— сообщение в мессенджере ——— */
+  .phone{
+    background:#fff;
+    border:1px solid var(--rule-strong);
+    box-shadow:6px 6px 0 rgba(22,32,43,.09);
+  }
+  .phone-bar{
+    display:flex; align-items:center; gap:9px;
+    padding:11px 15px; border-bottom:1px solid var(--rule);
+    font-family:'PT Sans Narrow',sans-serif; text-transform:uppercase;
+    letter-spacing:.12em; font-size:12px; color:var(--ink-soft);
+  }
+  .dot{width:9px; height:9px; border-radius:50%; background:var(--ok); flex:none;}
+  .dot.red{background:var(--alert);}
+  .msg{
+    padding:17px 18px; font-family:'PT Mono',monospace;
+    font-size:13.5px; line-height:1.62; white-space:pre-wrap;
+    overflow-wrap:anywhere; word-break:break-word;
+  }
+  .msg .t{color:var(--ink-soft);}
+  .msg .warn{color:var(--alert); font-weight:bold;}
+  .msg .obj{font-weight:bold;}
+  .msg .miss{color:var(--alert);}
+  .msg-time{
+    padding:0 18px 14px; font-family:'PT Mono',monospace;
+    font-size:11.5px; color:var(--ink-soft);
+  }
+
+  /* ——— две колонки: сейчас / стало ——— */
+  .compare{display:grid; grid-template-columns:1fr 1fr; gap:0; border:1px solid var(--rule-strong); background:#fff;}
+  .compare > div{padding:24px 26px;}
+  .compare > div:first-child{border-right:1px solid var(--rule-strong);}
+  .compare h3{margin-bottom:14px;}
+  .compare ul{margin:0; padding-left:18px;}
+  .compare li{margin-bottom:9px;}
+  .col-now h3{color:var(--ink-soft);}
+  .col-new h3{color:var(--signal);}
+
+  /* ——— распорядок дня ——— */
+  .day{display:grid; grid-template-columns:repeat(3,1fr); gap:0; border:1px solid var(--rule-strong); background:#fff;}
+  .day > div{padding:24px 24px 26px; border-right:1px solid var(--rule-strong);}
+  .day > div:last-child{border-right:none;}
+  .time{
+    font-family:'PT Sans Narrow',sans-serif; font-weight:700;
+    font-size:32px; letter-spacing:.02em; color:var(--signal);
+    display:block; line-height:1;
+  }
+  .time small{display:block; font-size:12px; letter-spacing:.16em; color:var(--ink-soft); margin-top:7px; text-transform:uppercase;}
+  .day p{margin:15px 0 0; font-size:15.5px;}
+
+  /* ——— накопление ——— */
+  .stats{display:grid; grid-template-columns:1fr 1fr; gap:34px; align-items:start;}
+  .ledger{border:1px solid var(--rule-strong); background:#fff; font-family:'PT Mono',monospace; font-size:13px;}
+  .ledger div{display:flex; justify-content:space-between; padding:11px 16px; border-bottom:1px solid var(--rule);}
+  .ledger div:last-child{border-bottom:none;}
+  .ledger .n{color:var(--alert); font-weight:bold;}
+  .ledger .total{background:#F7F8F5; font-weight:bold;}
+
+  /* ——— цены ——— */
+  .price-table{width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--rule-strong);}
+  .price-table th, .price-table td{
+    text-align:left; padding:15px 18px; border-bottom:1px solid var(--rule);
+    vertical-align:top;
+  }
+  .price-table th{
+    font-family:'PT Sans Narrow',sans-serif; text-transform:uppercase;
+    letter-spacing:.1em; font-size:12.5px; color:var(--ink-soft);
+    border-bottom:1px solid var(--rule-strong);
+  }
+  .price-table tr:last-child td{border-bottom:none;}
+  .price-table .sum{
+    font-family:'PT Sans Narrow',sans-serif; font-weight:700; font-size:23px;
+    white-space:nowrap; text-align:right;
+  }
+  .price-table td small{display:block; color:var(--ink-soft); font-size:14px; margin-top:3px;}
+  .free{color:var(--ok);}
+  .included{margin-top:18px; font-size:15px; color:var(--ink-soft);}
+  .included b{color:var(--ink);}
+
+  /* ——— штамп (основная надпись) ——— */
+  .stamp{
+    margin-top:54px; border:2px solid var(--ink); background:#fff;
+    display:grid; grid-template-columns:1.4fr 1fr;
+  }
+  .stamp > div{padding:20px 22px;}
+  .stamp .left{border-right:1px solid var(--ink);}
+  .stamp-label{font-size:11px; letter-spacing:.18em; color:var(--ink-soft); display:block; margin-bottom:5px;}
+  .stamp .name{font-family:'PT Sans Narrow',sans-serif; text-transform:uppercase; font-size:25px; letter-spacing:.04em; font-weight:700;}
+  .stamp .role{font-size:14.5px; color:var(--ink-soft); margin-top:3px;}
+  .stamp .contact{font-family:'PT Mono',monospace; font-size:14px; margin-top:14px; line-height:1.85;}
+  .stamp .contact a{color:var(--ink); text-decoration:none; border-bottom:1px solid var(--signal);}
+
+  .cta{
+    display:inline-block; margin-top:20px;
+    background:var(--signal); color:#fff; text-decoration:none;
+    font-family:'PT Sans Narrow',sans-serif; text-transform:uppercase;
+    letter-spacing:.12em; font-weight:700; font-size:16px;
+    padding:14px 26px;
+  }
+  .cta:hover{background:var(--ink);}
+  a:focus-visible, .cta:focus-visible{outline:3px solid var(--ink); outline-offset:3px;}
+
+  /* ——— форма заявки ——— */
+  .form{
+    display:grid; grid-template-columns:1fr 1fr; gap:18px;
+    background:#fff; border:1px solid var(--rule-strong); padding:26px;
+  }
+  .form label{display:flex; flex-direction:column; gap:7px;}
+  .form label.wide{grid-column:1 / -1;}
+  .form span{
+    font-family:'PT Sans Narrow',sans-serif; text-transform:uppercase;
+    letter-spacing:.1em; font-size:12.5px; color:var(--ink-soft);
+  }
+  .form span em{font-style:normal; text-transform:none; letter-spacing:0;}
+  .form input, .form textarea{
+    font-family:'PT Sans',sans-serif; font-size:16px; color:var(--ink);
+    padding:11px 13px; border:1px solid var(--rule-strong); background:var(--paper);
+    border-radius:0; width:100%;
+  }
+  .form input:focus, .form textarea:focus{
+    outline:2px solid var(--signal); outline-offset:-2px; background:#fff;
+  }
+  .form textarea{resize:vertical;}
+  .form-actions{grid-column:1 / -1; display:flex; gap:12px; flex-wrap:wrap; margin-top:4px;}
+  .cta.ghost{background:transparent; color:var(--ink); border:2px solid var(--ink);}
+  .cta.ghost:hover{background:var(--ink); color:#fff;}
+  .form-hint{grid-column:1 / -1; margin:0; font-size:14px; color:var(--ink-soft);}
+  .form-hint.done{color:var(--ok); font-weight:bold;}
+
+  .reveal{opacity:0; transform:translateY(14px); transition:opacity .55s ease, transform .55s ease;}
+  .reveal.on{opacity:1; transform:none;}
+
+  @media (max-width:820px){
+    .hero-grid,.compare,.day,.stats,.stamp{grid-template-columns:1fr;}
+    .compare > div:first-child{border-right:none; border-bottom:1px solid var(--rule-strong);}
+    .day > div{border-right:none; border-bottom:1px solid var(--rule-strong);}
+    .day > div:last-child{border-bottom:none;}
+    .stamp .left{border-right:none; border-bottom:1px solid var(--ink);}
+    body{font-size:16px;}
+    .sheet{padding:0 15px 48px;}
+    .hero-grid,.stats{gap:26px;}
+    .msg{font-size:12.5px; padding:14px 14px;}
+    .compare > div,.day > div{padding:20px 18px;}
+    .time{font-size:27px;}
+    .stamp > div{padding:17px 18px;}
+    .stamp .name{font-size:21px;}
+    .ledger div{padding:10px 13px; font-size:12.5px; gap:12px;}
+
+    /* таблица цен превращается в карточки */
+    .price-table, .price-table tbody, .price-table tr, .price-table td{
+      display:block; width:100%;
+    }
+    .price-table tr:first-child{display:none;}   /* заголовки не нужны в карточках */
+    .price-table tr{border-bottom:1px solid var(--rule-strong); padding:6px 0 12px;}
+    .price-table tr:last-child{border-bottom:none;}
+    .price-table td{
+      border-bottom:none; padding:5px 16px;
+      overflow-wrap:anywhere; word-break:break-word; max-width:100%;
+    }
+    .price-table .sum{
+      text-align:left; font-size:24px; padding-top:2px;
+      white-space:normal;                /* на телефоне перенос разрешён */
+    }
+    .price-table td small{margin-top:2px;}
+    .cta{width:100%; text-align:center;}
+    .form{grid-template-columns:1fr; padding:20px 17px; gap:15px;}
+    .form-actions{flex-direction:column; gap:10px;}
+  }
+  @media (max-width:400px){
+    .sheet{padding:0 12px 40px;}
+    .msg{font-size:11.5px; padding:12px 11px;}
+    .price-table td{padding:4px 13px;}
+    .price-table .sum{font-size:21px;}
+    .included,.hero-note{font-size:15px;}
+    .ledger div{font-size:11.5px; padding:9px 11px;}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    .reveal{opacity:1; transform:none; transition:none;}
+    html{scroll-behavior:auto;}
+  }
+  @media print{
+    body{background:#fff;}
+    body::before{display:none;}
+    section{page-break-inside:avoid; border-bottom:1px solid #999;}
+    .reveal{opacity:1; transform:none;}
+    .cta{display:none;}
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header>
+    <div class="who">Отчётность со стройки · <b>без обзвонов</b></div>
+    <div class="doc">лист 1 · ред. 08.2026</div>
+  </header>
+
+  <section class="hero">
+    <div class="eyebrow">Ежедневные отчёты по объектам</div>
+    <h1>Вечером прораб отвечает на пять вопросов.<br>Утром вы видите <em>все объекты сразу</em>.</h1>
+    <p class="lead">Без установки программ и обучения. Всё в мессенджере, который уже стоит
+      в телефоне у каждого на площадке.</p>
+
+    <div class="hero-grid">
+      <div class="phone reveal">
+        <div class="phone-bar"><span class="dot"></span> Сводка · 08:00</div>
+        <div class="msg"><span class="t">📋 Сводка за 11.08.2026</span>
+
+<span class="obj">🏗 ЖК «Сахаров»</span>
+Работы: монолит 250 м³, кладка 36 м³, разработка грунта 600 м³
+Люди: 17 рабочих, 9 ИТР
+Техника: автокран, экскаватор, 8 самосвалов, башенный кран
+<span class="warn">⚠️ Проблемы: завод не отгрузил кирпич, нужен завтра к 6:00</span>
+План: монолит 170 м³, кладка 45 м³
+
+<span class="obj">🏗 Школа на Репина</span>
+<span class="miss">❗ Отчёт не сдан</span></div>
+        <div class="msg-time">Это настоящий отчёт с действующего объекта</div>
+      </div>
+
+      <div class="hero-note">
+        <p><strong>Одно сообщение вместо пяти звонков.</strong> Руководитель открывает
+          телефон и за минуту понимает, что происходит на всех площадках.</p>
+        <p>Строка «отчёт не сдан» появляется сама. Не нужно вспоминать, от кого
+          сегодня ничего не было.</p>
+        <p>Прорабу — пять коротких вопросов вечером. Отвечать можно между делом:
+          бот помнит, на чём остановились.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="head-block">
+      <div class="eyebrow">В чём разница</div>
+      <h2>Как это устроено сейчас — и что меняется</h2>
+    </div>
+    <div class="compare reveal">
+      <div class="col-now">
+        <h3>Сейчас</h3>
+        <ul>
+          <li>Вечерний обзвон прорабов, у каждого свой формат</li>
+          <li>Отчёты тонут в переписке вместе с фотографиями и голосовыми</li>
+          <li>О нехватке материалов узнают, когда бригада уже стоит</li>
+          <li>Через месяц не вспомнить, сколько раз срывались отгрузки и по чьей вине</li>
+        </ul>
+      </div>
+      <div class="col-new">
+        <h3>С ботом</h3>
+        <ul>
+          <li>Прораб отвечает на пять вопросов — форма одинаковая по всем объектам</li>
+          <li>Утром одно сообщение по всем площадкам, видно и тех, кто не отчитался</li>
+          <li>О нехватке руководитель узнаёт в тот же час, а не утром</li>
+          <li>Накапливается история: кто, когда и что сорвал — с датами и временем</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="head-block">
+      <div class="eyebrow">Распорядок</div>
+      <h2>Три момента в сутках</h2>
+    </div>
+    <div class="day reveal">
+      <div>
+        <span class="time">18:30<small>Опрос прораба</small></span>
+        <p>Бот пишет каждому прорабу в личные сообщения и задаёт пять вопросов:
+          работы и объёмы, люди, техника, помехи, план на завтра.
+          В 20:00 напоминает тем, кто не закончил.</p>
+      </div>
+      <div>
+        <span class="time">В любой час<small>Срочное</small></span>
+        <p>Узнали в обед, что материал не приедет — одна команда, и руководитель
+          получает сообщение сразу. Звонок это не заменяет, но остаётся запись
+          с точным временем.</p>
+      </div>
+      <div>
+        <span class="time">08:00<small>Сводка руководителю</small></span>
+        <p>Все объекты одним сообщением: что сделано, сколько людей и техники,
+          какие помехи, план. Отдельной строкой — кто отчёт не сдал.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="head-block">
+      <div class="eyebrow">Срочное</div>
+      <h2>О простое узнают в тот же час</h2>
+    </div>
+    <div class="hero-grid">
+      <div class="phone reveal">
+        <div class="phone-bar"><span class="dot red"></span> Сообщение руководителю · 13:40</div>
+        <div class="msg"><span class="warn">⚠️ СРОЧНО — ЖК «Сахаров»</span>
+
+Завод не отгрузил кирпич, нужен завтра к 6:00
+
+<span class="t">Сообщил: прораб, 11.08 в 13:40</span></div>
+      </div>
+      <div class="hero-note">
+        <p><strong>Прораб звонит, как звонил.</strong> Бот нужен не вместо звонка, а
+          чтобы у разговора остался след.</p>
+        <p>Через месяц на планёрке это уже не «я вам говорил» — а запись с датой
+          и временем. И не одному человеку, а всем, кому положено знать: снабженцу,
+          ГИПу, директору.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="head-block">
+      <div class="eyebrow">Что появляется через квартал</div>
+      <h2>История, которой раньше не было</h2>
+    </div>
+    <div class="stats">
+      <div class="ledger reveal">
+        <div><span>Срывы поставок, II квартал</span><span class="n">14</span></div>
+        <div><span>из них — один поставщик кирпича</span><span class="n">8</span></div>
+        <div><span>Смен потеряно на простоях</span><span class="n">11</span></div>
+        <div><span>Дней без отчёта по объектам</span><span class="n">6</span></div>
+        <div class="total"><span>Отчётов собрано</span><span>178</span></div>
+      </div>
+      <div class="hero-note">
+        <p>Это не аналитика ради аналитики. Это ответ на вопрос, который обычно
+          решается на эмоциях: <strong>менять поставщика или нет.</strong></p>
+        <p>Звонки такого не накапливают. Переписка в мессенджере — тоже: там всё
+          вперемешку и не считается.</p>
+        <p class="mono" style="font-size:14px;">Пример цифр для наглядности —
+          у вас будут свои.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="head-block">
+      <div class="eyebrow">Стоимость</div>
+      <h2>Сколько это стоит</h2>
+    </div>
+    <table class="price-table reveal">
+      <tr>
+        <th>Что</th><th>Что входит</th><th style="text-align:right;">Сколько</th>
+      </tr>
+      <tr>
+        <td><b>Пробные две недели</b></td>
+        <td>Один объект, настоящие отчёты, живой руководитель.
+          <small>Решаете после, а не до.</small></td>
+        <td class="sum free">бесплатно</td>
+      </tr>
+      <tr>
+        <td><b>Запуск</b></td>
+        <td>Настройка под ваши объекты и формулировки вопросов,
+          подключение прорабов и руководителей, короткое обучение.
+          <small>Разово, при подключении.</small></td>
+        <td class="sum">15 000 ₽</td>
+      </tr>
+      <tr>
+        <td><b>Работа бота</b><br>до 3 объектов</td>
+        <td>Сервер, обновления, поддержка, мелкие правки формулировок.
+          <small>Ежемесячно. Отказаться можно в любой месяц.</small></td>
+        <td class="sum">6 000 ₽<small>в месяц</small></td>
+      </tr>
+      <tr>
+        <td><b>Работа бота</b><br>до 10 объектов</td>
+        <td>То же самое, объектов больше.
+          <small>Свыше 10 объектов — считаем отдельно.</small></td>
+        <td class="sum">12 000 ₽<small>в месяц</small></td>
+      </tr>
+    </table>
+    <p class="included"><b>Отдельно платить не нужно:</b> сервер, обновления и переписка
+      по мелким доработкам входят в ежемесячную плату. Доработки, меняющие устройство
+      бота — новые роли, выгрузки, интеграция с 1С — обсуждаются отдельно.</p>
+    <a class="cta" href="#zayavka">Договориться о пробных двух неделях</a>
+  </section>
+
+  <section id="zayavka" style="border-bottom:none;">
+    <div class="head-block">
+      <div class="eyebrow">Связаться</div>
+      <h2>Оставьте заявку — отвечу в течение дня</h2>
+    </div>
+    <p class="lead" style="margin-bottom:24px;">Расскажу подробнее, покажу бота
+      в работе и отвечу на вопросы. Пробные две недели — бесплатно.</p>
+
+    <form class="form" id="leadForm" onsubmit="return false;">
+      <label>
+        <span>Организация</span>
+        <input type="text" id="f-company" placeholder="ООО «Стройка»" autocomplete="organization">
+      </label>
+      <label>
+        <span>Как к вам обращаться</span>
+        <input type="text" id="f-name" placeholder="Имя и отчество" autocomplete="name">
+      </label>
+      <label>
+        <span>Сколько объектов</span>
+        <input type="text" id="f-objects" placeholder="1–3, 5, 10…" inputmode="numeric">
+      </label>
+      <label>
+        <span>Телефон или почта для ответа</span>
+        <input type="text" id="f-contact" placeholder="+7 … или почта" autocomplete="tel">
+      </label>
+      <label class="wide">
+        <span>Вопрос или комментарий <em>— необязательно</em></span>
+        <textarea id="f-note" rows="3" placeholder="Что важно уточнить"></textarea>
+      </label>
+      <div class="form-actions">
+        <button class="cta" type="button" id="sendTg">Отправить в Telegram</button>
+        <button class="cta ghost" type="button" id="copyBtn">Скопировать заявку</button>
+      </div>
+      <p class="form-hint" id="formHint">Заявка откроется в Telegram готовым сообщением —
+        останется нажать «Отправить».</p>
+    </form>
+  </section>
+</div>
+
+<script>
+  // ——— заявка ———
+  // Форма не отправляется сама (сайту негде принимать данные) — она собирает
+  // текст и открывает Telegram с готовым сообщением.
+  const TELEGRAM_USERNAME = 'ВАШ_НИК';   // без @, например: kalabin_dm
+
+  function buildText(){
+    const get = id => (document.getElementById(id).value || '').trim();
+    const rows = [
+      ['Заявка на бота отчётов', ''],
+      ['Организация', get('f-company')],
+      ['Имя', get('f-name')],
+      ['Объектов', get('f-objects')],
+      ['Контакт', get('f-contact')],
+      ['Комментарий', get('f-note')],
+    ];
+    return rows
+      .filter(([k, v], i) => i === 0 || v)
+      .map(([k, v]) => (v ? k + ': ' + v : k))
+      .join('\n');
+  }
+
+  function hint(text, done){
+    const el = document.getElementById('formHint');
+    el.textContent = text;
+    el.classList.toggle('done', !!done);
+  }
+
+  document.getElementById('sendTg').addEventListener('click', () => {
+    const contact = document.getElementById('f-contact').value.trim();
+    const name = document.getElementById('f-name').value.trim();
+    if (!contact && !name) {
+      hint('Укажите хотя бы имя и способ связи — иначе не смогу ответить.');
+      return;
+    }
+    const url = 'https://t.me/' + TELEGRAM_USERNAME + '?text=' + encodeURIComponent(buildText());
+    window.open(url, '_blank', 'noopener');
+    hint('Открыл Telegram — там останется нажать «Отправить».', true);
+  });
+
+  document.getElementById('copyBtn').addEventListener('click', async () => {
+    const text = buildText();
+    try {
+      await navigator.clipboard.writeText(text);
+      hint('Заявка скопирована — можно вставить в любой мессенджер или письмо.', true);
+    } catch {
+      hint('Скопировать не вышло. Выделите текст вручную:\n\n' + text);
+    }
+  });
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('on'); io.unobserve(e.target); } });
+  }, {threshold:.15});
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+</body>
+</html>
