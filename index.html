@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ежедневные отчёты со стройки — в мессенджере</title>
+<title>Боты для стройки — отчёты и стройконтроль</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=PT+Sans+Narrow:wght@400;700&family=PT+Sans:ital,wght@0,400;0,700;1,400&family=PT+Mono&display=swap" rel="stylesheet">
@@ -200,6 +200,28 @@
   .cta:hover{background:var(--ink);}
   a:focus-visible, .cta:focus-visible{outline:3px solid var(--ink); outline-offset:3px;}
 
+  /* ——— витрина продуктов ——— */
+  .products{
+    display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:38px;
+  }
+  .product{
+    display:block; text-decoration:none; color:inherit;
+    background:#fff; border:1px solid var(--rule-strong);
+    padding:26px 26px 22px; transition:transform .18s ease, box-shadow .18s ease;
+  }
+  .product:hover{transform:translateY(-3px); box-shadow:7px 7px 0 rgba(22,32,43,.10);}
+  .product-tag{
+    font-family:'PT Sans Narrow',sans-serif; text-transform:uppercase;
+    letter-spacing:.16em; font-size:12.5px; color:var(--signal); margin-bottom:10px;
+  }
+  .product h3{font-size:26px; letter-spacing:.02em; margin-bottom:12px;}
+  .product p{font-size:16px; color:var(--ink-soft); line-height:1.5; margin-bottom:16px;}
+  .product-more{
+    font-family:'PT Sans Narrow',sans-serif; text-transform:uppercase;
+    letter-spacing:.12em; font-size:13px; color:var(--ink);
+    border-top:2px solid var(--ink); padding-top:12px;
+  }
+
   /* ——— форма заявки ——— */
   .form{
     display:grid; grid-template-columns:1fr 1fr; gap:18px;
@@ -263,6 +285,9 @@
     }
     .price-table td small{margin-top:2px;}
     .cta{width:100%; text-align:center;}
+    .products{grid-template-columns:1fr; gap:16px;}
+    .product{padding:20px 18px 18px;}
+    .product h3{font-size:23px;}
     .form{grid-template-columns:1fr; padding:20px 17px; gap:15px;}
     .form-actions{flex-direction:column; gap:10px;}
   }
@@ -307,31 +332,55 @@
 <div class="sheet">
 
   <header>
-    <div class="who">Отчётность со стройки · <b>без обзвонов</b></div>
+    <div class="who">Боты для стройки · <b>отчёты и стройконтроль</b></div>
     <div class="doc">лист 1 · ред. 08.2026</div>
   </header>
 
   <section class="hero">
-    <div class="eyebrow">Ежедневные отчёты по объектам</div>
-    <h1>Вечером прораб отвечает на пять вопросов.<br>Утром вы видите <em>все объекты сразу</em>.</h1>
-    <p class="lead">Без установки программ и обучения. Всё в мессенджере, который уже стоит
-      в телефоне у каждого на площадке.</p>
+    <div class="eyebrow">Два бота для стройплощадки</div>
+    <h1>Рутина с объектов — <em>в мессенджере</em>, который уже есть у каждого.</h1>
+    <p class="lead">Ставить ничего не нужно, обучать людей — тоже. Ниже два готовых
+      решения: можно взять любое отдельно или оба сразу.</p>
+
+    <div class="products">
+      <a class="product reveal" href="#otchety">
+        <div class="product-tag">Бот №1</div>
+        <h3>Ежедневные отчёты</h3>
+        <p>Вечером прораб отвечает на пять вопросов. Утром руководитель видит
+          сводку по всем объектам одним сообщением — и сразу видно, кто не отчитался.</p>
+        <div class="product-more">Подробнее ↓</div>
+      </a>
+      <a class="product reveal" href="#stroykontrol">
+        <div class="product-tag">Бот №2</div>
+        <h3>Замечания стройконтроля</h3>
+        <p>Замечание с фото и сроком, отметка об устранении с фото, приёмка
+          инспектором. Ничего не теряется, сроки бот отслеживает сам.</p>
+        <div class="product-more">Подробнее ↓</div>
+      </a>
+    </div>
+  </section>
+
+  <section id="otchety">
+    <div class="head-block">
+      <div class="eyebrow">Бот №1 · Ежедневные отчёты</div>
+      <h2>Вечером прораб отвечает.<br>Утром вы видите все объекты сразу.</h2>
+    </div>
 
     <div class="hero-grid">
       <div class="phone reveal">
         <div class="phone-bar"><span class="dot"></span> Сводка · 08:00</div>
-        <div class="msg"><span class="t">📋 Сводка за 11.08.2026</span>
+        <div class="msg"><span class="t">Сводка за 11.08.2026</span>
 
-<span class="obj">🏗 ЖК «Сахаров»</span>
+<span class="obj">ЖК «Пример»</span>
 Работы: монолит 250 м³, кладка 36 м³, разработка грунта 600 м³
 Люди: 17 рабочих, 9 ИТР
 Техника: автокран, экскаватор, 8 самосвалов, башенный кран
 <span class="warn">⚠️ Проблемы: завод не отгрузил кирпич, нужен завтра к 6:00</span>
 План: монолит 170 м³, кладка 45 м³
 
-<span class="obj">🏗 Школа на Репина</span>
+<span class="obj">Школа на Репина</span>
 <span class="miss">❗ Отчёт не сдан</span></div>
-        <div class="msg-time">Это настоящий отчёт с действующего объекта</div>
+        <div class="msg-time">Так выглядит утренняя сводка</div>
       </div>
 
       <div class="hero-note">
@@ -446,6 +495,68 @@
     </div>
   </section>
 
+  <section id="stroykontrol">
+    <div class="head-block">
+      <div class="eyebrow">Бот №2 · Замечания стройконтроля</div>
+      <h2>Замечание с фото —<br>и дальше бот сам следит за сроком</h2>
+    </div>
+    <p class="lead" style="margin-bottom:30px;">Инспектор выдал, прораб устранил,
+      инспектор принял. Каждый шаг — с фотографией, вся история хранится.</p>
+
+    <div class="hero-grid">
+      <div class="phone reveal">
+        <div class="phone-bar"><span class="dot red"></span> Прорабу · сразу</div>
+        <div class="msg"><span class="warn">Новое замечание №47 — ЖК «Пример»</span>
+
+Кровля, узел примыкания
+выполнен не по проекту
+
+Срок: 20.08.2026
+Выдал: Инспектор И.
+
+<span class="t">[фото замечания]</span>
+
+Устранили — отправьте /устранил 47</div>
+        <div class="msg-time">Приходит прорабу в момент выдачи</div>
+      </div>
+
+      <div class="hero-note">
+        <p><strong>Ничего не теряется в переписке.</strong> У каждого замечания
+          свой номер, срок и статус — видно, что открыто, что ждёт проверки,
+          что закрыто.</p>
+        <p><strong>Двойная проверка.</strong> Прораб отмечает устранение с фото,
+          но закрывает замечание только инспектор — он же может вернуть
+          на доработку, тоже с фотографией.</p>
+        <p><strong>Сроки бот держит сам.</strong> Напомнит за день, в день срока
+          и при просрочке — причём при просрочке уведомит и прораба,
+          и инспектора.</p>
+      </div>
+    </div>
+
+    <div class="day reveal" style="margin-top:40px;">
+      <div>
+        <span class="time">1<small>Инспектор выдал</small></span>
+        <p>Текст замечания, фото и срок устранения. Прорабам объекта уходит
+          уведомление сразу.</p>
+      </div>
+      <div>
+        <span class="time">2<small>Прораб устранил</small></span>
+        <p>Отмечает выполнение и прикладывает фото работ. Инспектору приходит
+          уведомление на проверку.</p>
+      </div>
+      <div>
+        <span class="time">3<small>Инспектор принял</small></span>
+        <p>Либо принимает и закрывает, либо возвращает с причиной и фото —
+          история переделок сохраняется.</p>
+      </div>
+    </div>
+
+    <p class="included" style="margin-top:26px;"><b>Что это даёт:</b> в конце месяца
+      видно не только сколько замечаний выдано и закрыто, но и сколько раз одно
+      и то же переделывали — с датами, авторами и фотографиями. Такой список
+      не составить по переписке в мессенджере.</p>
+  </section>
+
   <section>
     <div class="head-block">
       <div class="eyebrow">Стоимость</div>
@@ -457,21 +568,21 @@
       </tr>
       <tr>
         <td><b>Пробные две недели</b></td>
-        <td>Один объект, настоящие отчёты, живой руководитель.
+        <td>Любой из ботов на одном объекте, в реальной работе.
           <small>Решаете после, а не до.</small></td>
         <td class="sum free">бесплатно</td>
       </tr>
       <tr>
         <td><b>Запуск</b></td>
-        <td>Настройка под ваши объекты и формулировки вопросов,
-          подключение прорабов и руководителей, короткое обучение.
-          <small>Разово, при подключении.</small></td>
+        <td>Настройка под ваши объекты, вопросы и роли, подключение
+          участников, короткое обучение.
+          <small>Разово. За каждого бота отдельно.</small></td>
         <td class="sum">15 000 ₽</td>
       </tr>
       <tr>
         <td><b>Работа бота</b><br>до 3 объектов</td>
-        <td>Сервер, обновления, поддержка, мелкие правки формулировок.
-          <small>Ежемесячно. Отказаться можно в любой месяц.</small></td>
+        <td>Сервер, обновления, поддержка, мелкие правки.
+          <small>За одного бота, ежемесячно. Отказаться можно в любой месяц.</small></td>
         <td class="sum">6 000 ₽<small>в месяц</small></td>
       </tr>
       <tr>
@@ -481,9 +592,11 @@
         <td class="sum">12 000 ₽<small>в месяц</small></td>
       </tr>
     </table>
-    <p class="included"><b>Отдельно платить не нужно:</b> сервер, обновления и переписка
-      по мелким доработкам входят в ежемесячную плату. Доработки, меняющие устройство
-      бота — новые роли, выгрузки, интеграция с 1С — обсуждаются отдельно.</p>
+    <p class="included"><b>Оба бота вместе — дешевле:</b> при подключении второго
+      запуск считается со скидкой, а ежемесячная плата за него — половина.
+      Сервер, обновления и переписка по мелким доработкам уже входят в неё.
+      Доработки, меняющие устройство бота — новые роли, выгрузки, интеграция
+      с 1С — обсуждаются отдельно.</p>
     <a class="cta" href="#zayavka">Договориться о пробных двух неделях</a>
   </section>
 
@@ -530,7 +643,7 @@
   // ——— заявка ———
   // Форма не отправляется сама (сайту негде принимать данные) — она собирает
   // текст и открывает Telegram с готовым сообщением.
-  const TELEGRAM_USERNAME = 'ВАШ_НИК';   // без @, например: kalabin_dm
+  const TELEGRAM_USERNAME = 'dv_kalabin';   // без @, например: kalabin_dm
 
   function buildText(){
     const get = id => (document.getElementById(id).value || '').trim();
